@@ -5,6 +5,8 @@
 
 <br/>
 
+This fork includes support for 1.17.x, added by Haoshoku.
+
 ## What can i do with HamsterAPI?
 - Send Title, Subtitle, ActionBar, and Packets to players.
 - Listen incoming and outgoing packets with events based on priority and cancellation.
