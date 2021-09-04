@@ -45,8 +45,15 @@ public class HamsterPlayer {
 
 		try {
 			Object chatAction = toChatBaseComponent.invoke(null, "{ \"text\":\"" + text + "\" }");
-			Object packet = reflection.getNMSClass("PacketPlayOutChat")
+
+			Object packet = null;
+
+			if ( reflection.getVersion().equals( "v1_17_R1" ) )
+				packet = reflection.getNMSClassForLatestVersion("net.minecraft.network.protocol.game.PacketPlayOutChat")
 					.getConstructor(iChatBaseComponentClass, byte.class).newInstance(chatAction, (byte) 2);
+			else
+				packet = reflection.getNMSClass("PacketPlayOutChat")
+						.getConstructor(iChatBaseComponentClass, byte.class).newInstance(chatAction, (byte) 2);
 
 			sendPacket(packet);
 		} catch (final Exception e) {
@@ -59,6 +66,10 @@ public class HamsterPlayer {
 		final Reflection reflection = hamsterAPI.getReflection();
 
 		try {
+			if ( reflection.getVersion().equals( "v1_17_R1" ) ) {
+				System.out.println( "Using HamsterAPI for sendTitle is unnecessary for 1.17 - user player#setTitle instead" );
+				return;
+			}
 			Object chatTitle = toChatBaseComponent.invoke(null, "{ \"text\":\"" + title + "\" }");
 			Constructor<?> titleConstructor = reflection.getNMSClass("PacketPlayOutTitle").getConstructor(
 					reflection.getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0], iChatBaseComponentClass,
@@ -107,8 +118,14 @@ public class HamsterPlayer {
 
 		try {
 			final Object chatKick = toChatBaseComponent.invoke(null, "{ \"text\":\"" + reason + "\" }");
-			final Object packet = reflection.getNMSClass("PacketPlayOutKickDisconnect")
-					.getConstructor(iChatBaseComponentClass).newInstance(chatKick);
+
+			final Object packet;
+
+			if ( reflection.getVersion().equals( "v1_17_R1" ) )
+				packet = reflection.getNMSClassForLatestVersion( "net.minecraft.network.protocol.game.PacketPlayOutKickDisconnect" )
+						.getConstructor( iChatBaseComponentClass ).newInstance( chatKick );
+			else
+				packet = reflection.getNMSClass("PacketPlayOutKickDisconnect").getConstructor(iChatBaseComponentClass).newInstance(chatKick);
 
 			sendPacket(packet);
 		} catch (final Exception e) {
@@ -166,15 +183,27 @@ public class HamsterPlayer {
 			final Reflection reflection = hamsterAPI.getReflection();
 			final Object handler = player.getClass().getDeclaredMethod("getHandle").invoke(player);
 
-			this.playerConnection = reflection.getField(handler, "playerConnection");
-			this.networkManager = reflection.getField(playerConnection, "networkManager");
-			this.channel = (Channel) reflection.getField(networkManager, "channel");
-			this.iChatBaseComponentClass = reflection.getNMSClass("IChatBaseComponent");
-			this.sendPacketMethod = this.playerConnection.getClass().getDeclaredMethod("sendPacket",
-					reflection.getNMSClass("Packet"));
-			this.toChatBaseComponent = iChatBaseComponentClass.getDeclaredClasses()[0].getDeclaredMethod("a",
-					String.class);
-			this.setup = true;
+			if ( reflection.getVersion().equals( "v1_17_R1" ) ) {
+				this.playerConnection = reflection.getField(handler, "b");
+				this.networkManager = reflection.getField(playerConnection, "a");
+				this.channel = (Channel) reflection.getField(networkManager, "k");
+				this.iChatBaseComponentClass = reflection.getNMSClassForLatestVersion("net.minecraft.network.chat.IChatBaseComponent");
+				this.sendPacketMethod = this.playerConnection.getClass().getDeclaredMethod("sendPacket",
+						reflection.getNMSClassForLatestVersion("net.minecraft.network.protocol.Packet"));
+				this.toChatBaseComponent = iChatBaseComponentClass.getDeclaredClasses()[0].getDeclaredMethod("a",
+						String.class);
+				this.setup = true;
+			} else {
+				this.playerConnection = reflection.getField(handler, "playerConnection");
+				this.networkManager = reflection.getField(playerConnection, "networkManager");
+				this.channel = (Channel) reflection.getField(networkManager, "channel");
+				this.iChatBaseComponentClass = reflection.getNMSClass("IChatBaseComponent");
+				this.sendPacketMethod = this.playerConnection.getClass().getDeclaredMethod("sendPacket",
+						reflection.getNMSClass("Packet"));
+				this.toChatBaseComponent = iChatBaseComponentClass.getDeclaredClasses()[0].getDeclaredMethod("a",
+						String.class);
+				this.setup = true;
+			}
 		}
 	}
 
@@ -219,6 +248,7 @@ public class HamsterPlayer {
 			inject();
 		} catch (final IllegalAccessException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException
 				| ClosedChannelException e) {
+			e.printStackTrace();
 			return false;
 		}
 

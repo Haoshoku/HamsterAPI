@@ -29,16 +29,34 @@ public class Reflection {
 		return fieldValue;
 	}
 
+	public Class<?> getNMSClassForLatestVersion( String path ) {
+		if (this.classes.containsKey( path ) )
+			return this.classes.get( path );
+
+		try {
+			Class<?> clazz = Class.forName( path );
+			this.classes.put( path, clazz );
+			return clazz;
+		} catch ( ClassNotFoundException ignore ) {
+
+		}
+		return null;
+	}
+
 	public Class<?> getNMSClass(String key) {
 		if (this.classes.containsKey(key)) {
 			return this.classes.get(key);
 		}
 
 		try {
-			Class<?> nmsClass = Class.forName("net.minecraft.server." + this.version + "." + key);
+			Class<?> nmsClass = null;
+
+			if ( !this.version.equals( "v1_17_R1" ) )
+				nmsClass = Class.forName("net.minecraft.server." + this.version + "." + key);
+			else
+				nmsClass = Class.forName( "net.minecraft.network.protocol.game." + key );
 
 			this.classes.put(key, nmsClass);
-
 			return nmsClass;
 		} catch (final ClassNotFoundException e) {
 		}
@@ -61,5 +79,9 @@ public class Reflection {
 		}
 
 		return null;
+	}
+
+	public String getVersion() {
+		return this.version;
 	}
 }

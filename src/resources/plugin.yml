@@ -1,5 +1,5 @@
 name: HamsterAPI
-version: 0.1.8
-authors: [Sammwy, LinsaFTW]
+version: 0.2
+authors: [Sammwy, LinsaFTW, Haoshoku]
 api-version: 1.13
 main: dev._2lstudios.hamsterapi.HamsterAPI
