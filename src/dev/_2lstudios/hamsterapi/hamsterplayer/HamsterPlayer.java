@@ -46,8 +46,7 @@ public class HamsterPlayer {
 		try {
 			Object chatAction = toChatBaseComponent.invoke(null, "{ \"text\":\"" + text + "\" }");
 
-			Object packet = null;
-
+			Object packet;
 			if ( reflection.getVersion().equals( "v1_17_R1" ) )
 				packet = reflection.getNMSClassForLatestVersion("net.minecraft.network.protocol.game.PacketPlayOutChat")
 					.getConstructor(iChatBaseComponentClass, byte.class).newInstance(chatAction, (byte) 2);
